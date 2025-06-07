@@ -1,1 +1,24 @@
-node_modules
+# Ignore node_modules (for frontend)
+node_modules/
+
+# Ignore macOS system files (for example, .DS_Store)
+.DS_Store
+
+# Ignore Python artifacts (for backend)
+__pycache__/
+*.pyc
+dist/
+build/
+.venv/
+.venv
+
+# Ignore Expo (or React Native) artifacts (for frontend)
+.expo/
+dist/
+npm-debug.log
+
+# Ignore Docker volumes (if any)
+postgres_data/
+
+# Ignore any local env files (for example, .env) (optional, if you do not want to commit them)
+# .env

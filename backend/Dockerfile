@@ -1,38 +1,31 @@
-# Use Node.js LTS as the base image
-FROM node:18-bullseye
-
-# Install OpenCV dependencies and build tools
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    pkg-config \
-    libopencv-dev \
-    python3-opencv \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install all dependencies (including devDependencies)
-RUN npm install --no-package-lock && npm install opencv-build && npm install opencv4nodejs
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the source code
+# Copy application code
 COPY . .
 
-# Download the cascade classifier
-RUN mkdir -p models && \
-    curl -L https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml -o models/haarcascade_frontalface_default.xml
+# Create uploads directory
+RUN mkdir -p uploads
 
-# Build TypeScript
-RUN npm run build
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8000
 
-# Start the app using compiled JavaScript
-CMD ["node", "dist/index.js"] 
+# Run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 
